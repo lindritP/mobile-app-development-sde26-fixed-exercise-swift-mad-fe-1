@@ -17,7 +17,7 @@
 //:
 //: Write a Hello World program in Swift in a single line. Why is this a valid Swift program?
 
-print("Hello, World!") // This works because Swift programs by default execute statements in the global scope. A `main` function or similar is not required.
+print("Hello, World!")  // This works because Swift programs by default execute statements in the global scope. A `main` function or similar is not required.
 
 //: ## Exercises
 //: ### Variables and Constants
@@ -27,12 +27,51 @@ print("Hello, World!") // This works because Swift programs by default execute s
 //: 1. Declare a variable with explicit type `Float` and value `42.5`.
 //: 1. Declare an uninitialized constant with type `String`. Will you ever be able to assign a value to this constant?
 
+var a = 42  // This variable is implicitly assigned type Int
+let b = 42  // This constant is implicitly assigned type Int
+var c = 42.5
+var typeOfC = type(of: c)
+print(typeOfC)  //The type of c is Double, because Swift defaults to Double for floating point literals.
+
+var d: Float = 42.5  // This variable is explicitly assigned type Float
+let e: String  // This constant is uninitialized and will be able to be assigned a value for the first time, but after that it will be immutable and cannot be changed again.
+
+e = "Hello Lindrit "
+
+print(e)  // This will print "Hello Lindrit " to the console
+
+//e = "Hello again" // This will throw an error because `e` is a constant and cannot be reassigned after its initial assignment.
+// - error: immutable value 'e' may only be initialized once
+a = 40
+
+print(a)  // This will print "40" to the console, because the variable `a` was changed from 42 to 40.
+
 //: ### Strings and String interpolation
 //: 1. Create a constant of type `String` containing the text `"This is a String."`.
 //: 1. Create a mutable String with `"This is an Int: "` as its initial value.
 //: 1. Create an `Int` constant with value 42 and append it to the mutable string, resulting in the value: `"This is an Int: 42"`.
 //: 1. Create another constant containing the same string, but this time use a string literal and string interpolation (the `\()` syntax) to create it.
-//: 1. Create a multiline string using the multiline string literal.
+//: 1. Create a multiline string using the musltiline string literal.
+
+let constString: String = "This is a String."
+var mutableString: String = "This is an Int: "
+let intConst: Int = 42
+
+// mutableString = mutableString + intConst (cannot convert value of type 'Int' to expected argument type 'String')
+
+mutableString = mutableString + String(intConst)  // This will convert the Int to a String and append it to the mutableString
+
+print(mutableString)  // This will print "This is an Int: 42" to the console
+
+let anotherConstString: String = "This is an Int: \(intConst)"  // This will use string interpolation to create the same string as above
+print(anotherConstString)  // This will print "This is an Int: 42" to the console
+
+var multilineString: String = """
+    This is a multiline string.
+    It spans multiple lines. Yay! 
+    """
+
+print(multilineString)  // This will print the multiline string to the console
 
 //: ### Arrays and Dictionaries
 //: Arrays
@@ -43,9 +82,50 @@ print("Hello, World!") // This works because Swift programs by default execute s
 //: 1. What happens if you modify the `String` element in the second array (for example, if you append a word to it)? Will the second element in the first array also change, or stay the same? Explain why.
 //: 1. Create an immutable empty array of type `[Int]` without any literals, using the name of the class (`Array`) and the standard initializer for generic types (`var value = ClassName<GenericType>()`)
 
+let immutableStringArray: [String] = ["Hello", "Lindrit", "Prekaj"]
+var mutableStringArray: [String] = []
+
+mutableStringArray.append(immutableStringArray[1])
+
+print(mutableStringArray)
+
+//immutableStringArray[0] = "Bye" //- error: cannot assign through subscript: 'immutableStringArray' is a 'let' constant. It can not be modified because it is declared as a constant using `let`.
+
+class Friend {
+    var name: String
+    init(name: String) {
+        self.name = name
+    }
+}
+
+let immutableClassArray: [Friend] = [
+    Friend(name: "Lindrit"), Friend(name: "Rina"), Friend(name: "Nero"),
+]
+
+immutableClassArray[0].name = "Dorina"  // This is allowed because the array does not hold the objects themselves, only references to them. `let` freezes those references, but the objects they point to can still be changed.
+
+//immutableClassArray[0] = Friend(name: "Dorina") //- error: cannot assign through subscript: 'immutableClassArray' is a 'let' constant. Replacing an element would change a reference, and the references are frozen by `let`.
+
+print(immutableClassArray[0].name)  // This will print "Dorina" to the console
+
+mutableStringArray[0] += " Prekaj"
+
+print("Second Array: " + mutableStringArray[0])
+
+print("First Array: " + immutableStringArray[1])  // This will print "Lindrit" to the console, because the second element in the first array is a separate instance of the String object and is not affected by changes made to the second array.
+
+let immutableIntArray: [Int] = Array<Int>()
+
+// My appending something in the second array we do not affect it in the first array. It got copied to the second array and thus it can not interfere with the first array
+
 //: Dictionaries
 //: 1. Create a mutable empty Dictionary of type `[String: Double]`
 //: 1. Set the value for the key `"Answer to Life, the Universe and Everything"` to `42`.
+
+var mutableDictionary: [String: Double] = [:]
+mutableDictionary["Answer to Life, the Universe and Everything"] = 42.0
+
+print (mutableDictionary)  
 
 //: ### Optionals
 //: 1. Create an optional `String` variable and assign a non-nil value of your choice
@@ -54,6 +134,24 @@ print("Hello, World!") // This works because Swift programs by default execute s
 //: 1. Create another optional `String` variable and asign the value `nil`. Use the nil coalescing operator (`??`) to print the first unwrapped String from above.
 //: 1. Do the same thing again, but this time use the ternary conditional operator `(a ? b : c)`.
 
+
+var optionalString: String? = "Hello, Lindrit"
+
+print(optionalString!)  
+
+var optionalInt: Int? = nil
+
+//print(optionalInt!) //Fatal error: Unexpectedly found nil while unwrapping an Optional value
+// Force-unwrapping an optional that contains `nil` crashes the program while it is running. The compiler does not warn about this beforehand, because it cannot know that the value will be `nil` at that moment. That is why `!` should only be used when you are sure a value exists, and `if let` or `??` are the safer choice otherwise.
+
+var anotherOptionalString: String? = nil
+
+
+
+print(anotherOptionalString ?? optionalString!)  // This will print "Hello, Lindrit" to the console, because `anotherOptionalString` is `nil`, so the nil coalescing operator returns the value of `optionalString!`.
+//anotherOptionalString = "Hello, Rina"
+print(anotherOptionalString != nil ? anotherOptionalString! : optionalString!)
+
 //: Optional chaining
 //: 1. Consider the following `struct`. Use optional chaining to change the value of `anOptionalInt` in `instance` to a new value of your choice in a single line of code. What would happen if we executed that line while `instance` is `nil`?
 //: 1. Use the `if let` conditional and optional chaining to print the value of `anOptionalInt` in `instance`. What would happen if `instance` or `anOptionalInt` were `nil`?
@@ -61,13 +159,29 @@ print("Hello, World!") // This works because Swift programs by default execute s
 
 struct MyStruct {
     var anOptionalInt: Int? = 5
-    
+
     func sayHelloWorld() {
         print("Hello, World!")
     }
 }
 
 var instance: MyStruct? = MyStruct()
+
+//print(instance!.anOptionalInt!)
+ instance?.anOptionalInt = 10  // This will change the value of `anOptionalInt` to 10. If `instance` were `nil`, this line would do nothing and not cause a runtime error.
+
+print(instance?.anOptionalInt ?? "instance is nil") 
+
+if let anOptionalInt = instance?.anOptionalInt {
+    print(anOptionalInt)  // This will print "10" to the console. If `instance` or `anOptionalInt` were `nil`, the whole chain `instance?.anOptionalInt` would be `nil`, so this block would be skipped and the `else` block would run instead.
+} else {
+    print("instance or anOptionalInt is nil")  // Only runs if the chain returned `nil`. Without an `else` block, nothing would be printed and the program would continue without a crash.
+}
+
+//instance = nil
+print("---")
+instance?.sayHelloWorld()  // This will print "Hello, World!" to the console. If `instance` were `nil`, this line would do nothing and not cause a runtime error.
+
 
 //: ### Control flow
 //: 1. Write a `for-in` loop that sums up all the values in `myNumbers`.
@@ -102,7 +216,6 @@ func callAClosure(closure: (String, String) -> String) {
 callAClosure(closure: { (item1: String, item2: String) -> String in
     return "\(item1) \(item2)"
 })
-
 
 //: ### Classes
 //: 1. Create a new class named `Person`. Add non-optional `firstName` and `lastName` properties and an initializer.
