@@ -189,6 +189,18 @@ instance?.sayHelloWorld()  // This will print "Hello, World!" to the console. If
 
 let myNumbers = [12, 23, 1, 104]
 
+var sum = 0
+for number in myNumbers {
+    sum += number
+}
+print(sum)  // This will print "140" to the console
+
+var numbersByIndex: [Int: Int] = [:]
+for (index, number) in myNumbers.enumerated() {  // `enumerated()` gives us the index and the element at the same time
+    numbersByIndex[index] = number
+}
+print(numbersByIndex)  // Contains 0: 12, 1: 23, 2: 1, 3: 104. The printed order can differ, because dictionaries have no fixed order.
+
 //: ### Functions and Closures
 //: Functions
 //: 1. Declare and call a function without any parameters or return type that prints Hello World.
@@ -198,10 +210,50 @@ let myNumbers = [12, 23, 1, 104]
 //: 1. Declare a function with a default parameter value. Call the function twice, once with the argument present, once without.
 //: 1. Declare a function with name `callAFunction` that takes another function as parameter and then executes it. Call your newly declared `callAFunction` and pass in one of the functions you previously declared.
 
+func printHelloWorld() {
+    print("Hello World")
+}
+printHelloWorld()
+
+func combine(first: String, second: String) -> String {
+    return "\(first) \(second)"
+}
+print(combine(first: "Hello", second: "World"))  // By default, the parameter names are also used as argument labels
+
+func combineWithoutFirstLabel(_ first: String, second: String) -> String {
+    return "\(first) \(second)"
+}
+print(combineWithoutFirstLabel("Hello", second: "World"))  // `_` removes the argument label, so we call it without `first:`
+
+func combineWithCustomLabel(startingWith first: String, second: String) -> String {
+    return "\(first) \(second)"  // Inside the function we still use the parameter name `first`
+}
+print(combineWithCustomLabel(startingWith: "Hello", second: "World"))  // Outside we use the argument label `startingWith:`
+
+func sayHello(to name: String = "World") {
+    print("Hello, \(name)!")
+}
+sayHello(to: "Lindrit")  // This will print "Hello, Lindrit!"
+sayHello()  // This will print "Hello, World!", because the default value is used
+
+func callAFunction(function: () -> Void) {
+    function()
+}
+callAFunction(function: printHelloWorld)  // We pass the function itself without `()`, so it is not called here but inside `callAFunction`
+
 //: Closures
 //: 1. Create an optional variable that holds a closure (with a `String` parameter and no return type) and assign `nil`.
 //: 1. Call the closure using optional chaining. What will happen?
 //: 1. Create a `typealias` for this type of closure.
+
+var optionalClosure: ((String) -> Void)? = nil  // The extra brackets are needed. `(String) -> Void?` would be a closure that returns an optional.
+
+optionalClosure?("Hello")  // Nothing happens. The closure is `nil`, so the call is skipped, just like optional chaining on a method. It does not crash.
+
+typealias StringHandler = (String) -> Void
+
+var printingClosure: StringHandler? = { text in print(text) }
+printingClosure?("Hello from a closure")  // This closure is not `nil`, so it gets called and prints the text
 
 //: 1. Take a look at the following function, which takes a closure as parameter and calls it. This function is then called. For each of the following exercises, call the function again, but each time use one more simplification:
 //:   * Omit closure parameter types.
@@ -217,6 +269,29 @@ callAClosure(closure: { (item1: String, item2: String) -> String in
     return "\(item1) \(item2)"
 })
 
+// 1. Omit closure parameter types: Swift already knows them from `callAClosure`'s signature
+callAClosure(closure: { (item1, item2) -> String in
+    return "\(item1) \(item2)"
+})
+
+// 2. Omit the closure return type: Swift also knows that it has to return a `String`
+callAClosure(closure: { (item1, item2) in
+    return "\(item1) \(item2)"
+})
+
+// 3. Trailing closure: the closure is the last parameter, so it can be written after the round brackets
+callAClosure { (item1, item2) in
+    return "\(item1) \(item2)"
+}
+
+// 4. Shorthand argument names: `$0` is the first parameter, `$1` the second
+callAClosure {
+    return "\($0) \($1)"
+}
+
+// 5. Omit `return`: a closure with a single expression returns its result automatically
+callAClosure { "\($0) \($1)" }
+
 //: ### Classes
 //: 1. Create a new class named `Person`. Add non-optional `firstName` and `lastName` properties and an initializer.
 //: 1. Add a `name` computed property that returns a `String` containing the first and last name.
@@ -224,6 +299,56 @@ callAClosure(closure: { (item1: String, item2: String) -> String in
 //: 1. Create a subclass of `Person` and name it `Student`.
 //: 1. Add a `Float?` optional property called `grade`. Use the `didSet` property observer to make sure that the grade is not lower than 1.0 and not higher than 5.0 after it was set. Clamp the new value to this interval - so if a value higher than 5.0 is set, set it to 5.0 afterwards. If a value lower than 1.0 is set, set it to 1.0 afterwards.
 //: 1. Override the `greet` function from the superclass. If the `grade` property is set, it should now return `"Hi, I'm \(name). My grade is: \(grade)"`. If the `grade property isn't set, return the superclass's implementation.
+
+class Person {
+    var firstName: String
+    var lastName: String
+
+    init(firstName: String, lastName: String) {
+        self.firstName = firstName
+        self.lastName = lastName
+    }
+
+    var name: String {  // Computed property: it has no stored value and is recalculated every time it is read
+        return "\(firstName) \(lastName)"
+    }
+
+    func greet() -> String {
+        return "Hi, I'm \(name)."
+    }
+}
+
+class Student: Person {  // `Student` inherits all properties, the initializer and `greet` from `Person`
+    var grade: Float? {
+        didSet {
+            if let grade {
+                self.grade = min(max(grade, 1.0), 5.0)  // Setting the property inside its own `didSet` does not trigger `didSet` again
+            }
+        }
+    }
+
+    override func greet() -> String {
+        if let grade {
+            return "Hi, I'm \(name). My grade is: \(grade)"  // Unwrapped first, otherwise it would print "Optional(2.0)"
+        }
+        return super.greet()
+    }
+}
+
+let person = Person(firstName: "Max", lastName: "Mustermann")
+print(person.greet())  // This will print "Hi, I'm Max Mustermann."
+
+let student = Student(firstName: "Erika", lastName: "Musterfrau")
+print(student.greet())  // No grade set yet, so this uses the superclass's implementation: "Hi, I'm Erika Musterfrau."
+
+student.grade = 7.0
+print(student.greet())  // 7.0 is too high and gets clamped: "Hi, I'm Erika Musterfrau. My grade is: 5.0"
+
+student.grade = 0.3
+print(student.greet())  // 0.3 is too low and gets clamped: "Hi, I'm Erika Musterfrau. My grade is: 1.0"
+
+student.grade = 2.3
+print(student.greet())  // 2.3 is inside the interval and stays unchanged: "Hi, I'm Erika Musterfrau. My grade is: 2.3"
 
 //: ### Enums and Structs
 //: 1. Create an enum named `PetType` with cases `dog` and `cat`
@@ -237,6 +362,57 @@ callAClosure(closure: { (item1: String, item2: String) -> String in
 //: 1. Change one of the names of the students in your array. Does this change the name of any of the students stored in the `let` constants? Explain why/why not.
 //: 1. Can you change the name of one of the students stored in the `let` constants? Explain why/why not.
 
+enum PetType {
+    case dog
+    case cat
+
+    var animalSound: String {
+        switch self {
+        case .dog:
+            return "woof"
+        case .cat:
+            return "meow"
+        }
+    }
+}
+
+struct Pet {
+    var name: String
+    let type: PetType
+
+    func makeNoise() -> String {
+        return type.animalSound
+    }
+}
+
+let bello = Pet(name: "Bello", type: .dog)
+let luna = Pet(name: "Luna", type: .cat)
+let rex = Pet(name: "Rex", type: .dog)
+
+var pets = [bello, luna, rex]
+print(luna.makeNoise())  // This will print "meow"
+
+pets[0].name = "Max"
+print(pets[0].name)  // This will print "Max"
+print(bello.name)  // This will still print "Bello". `Pet` is a struct, which is a value type. When the pets were put into the array, they were copied. Changing the copy in the array does not affect the original in the constant.
+
+//bello.name = "Max" //- error: cannot assign to property: 'bello' is a 'let' constant. A struct in a `let` constant is completely immutable, even its `var` properties, because the properties are part of the struct's value.
+
+let anna = Student(firstName: "Anna", lastName: "Berg")
+let ben = Student(firstName: "Ben", lastName: "Kraus")
+let clara = Student(firstName: "Clara", lastName: "Wolf")
+
+var students = [anna, ben, clara]
+
+students[0].firstName = "Annika"
+print(students[0].name)  // This will print "Annika Berg"
+print(anna.name)  // This will also print "Annika Berg". `Student` is a class, which is a reference type. The array does not contain copies, only references to the same objects as the constants. So `students[0]` and `anna` are the same object.
+
+ben.firstName = "Benjamin"
+print(ben.name)  // This will print "Benjamin Kraus". This is allowed, because `let` only freezes the reference to the object, not the object itself. The object's `var` properties can still be changed.
+
+//anna = Student(firstName: "Dora", lastName: "Stein") //- error: cannot assign to value: 'anna' is a 'let' constant. What we can not do is make the constant point to a different object.
+
 //: ### Protocols and extensions
 //: 1. Create a protocol called `NamedThing`. Add a `get` variable of type `String`, with the name `name`.
 //: 1. Use extensions to make your `Person` class and `Pet` structs from above conform to the new protocol.
@@ -244,3 +420,25 @@ callAClosure(closure: { (item1: String, item2: String) -> String in
 //: 1. Iterate over the objects in the array and print out their names.
 //: 1. Create a protocol extension for `NamedThing` that contains a new computed property of type `String` called `initial`. Add a default implementation in your protocol extension, which returns the first character of the `name` property, or, if `name` is empty, an empty string.
 //: 1. Print the new `initials` property in the loop you created above.
+
+protocol NamedThing {
+    var name: String { get }  // `get` means conforming types must at least be able to read `name`. It may be stored or computed.
+}
+
+extension Person: NamedThing {}  // Empty, because `Person` already has a computed `name` property. `Student` conforms automatically as a subclass.
+extension Pet: NamedThing {}  // Empty, because `Pet` already has a stored `name` property
+
+let namedThings: [any NamedThing] = [bello, luna, rex, anna, ben, clara]  // `any NamedThing` is the modern way to write `NamedThing` as a type. The array can mix structs and classes, as long as they conform to the protocol.
+
+extension NamedThing {
+    var initial: String {  // Default implementation: every type that conforms to `NamedThing` gets this property for free
+        if let firstCharacter = name.first {  // `first` is optional, because an empty String has no first character
+            return String(firstCharacter)
+        }
+        return ""
+    }
+}
+
+for thing in namedThings {  // The loop for points 4 and 6: it prints the name and the new `initial` property
+    print("\(thing.name) (\(thing.initial))")
+}
